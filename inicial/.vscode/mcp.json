@@ -1,0 +1,23 @@
+{
+  // Ejemplo minimo para la demostracion del Dia 5: servidor MCP de GitHub (remoto).
+  // VS Code pedira autenticacion con GitHub la primera vez que se inicie el servidor.
+  // Para arrancarlo: paleta de comandos -> "MCP: List Servers" -> github -> Start.
+  "servers": {
+    "github": {
+      "type": "http",
+      "url": "https://api.githubcopilot.com/mcp/"
+    }
+  }
+  // Variante local con Docker y token propio (descomentar solo si se necesita):
+  // "servers": {
+  //   "github-local": {
+  //     "type": "stdio",
+  //     "command": "docker",
+  //     "args": ["run", "-i", "--rm", "-e", "GITHUB_PERSONAL_ACCESS_TOKEN", "ghcr.io/github/github-mcp-server"],
+  //     "env": { "GITHUB_PERSONAL_ACCESS_TOKEN": "${input:github_token}" }
+  //   }
+  // },
+  // "inputs": [
+  //   { "id": "github_token", "type": "promptString", "description": "GitHub PAT", "password": true }
+  // ]
+}

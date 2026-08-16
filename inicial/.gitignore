@@ -1,0 +1,26 @@
+## Archivos generados por .NET
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+TestResults/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## Carpetas de herramientas
+.vs/
+.idea/
+artifacts/
+
+## Cobertura y logs
+coverage*.json
+coverage*.xml
+coverage*.info
+*.log
+
+## Secretos locales (nunca se versionan)
+*.env
+appsettings.Local.json
+secrets.json

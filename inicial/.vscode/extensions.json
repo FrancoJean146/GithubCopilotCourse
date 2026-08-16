@@ -1,0 +1,10 @@
+{
+  // Copilot Chat viene integrado en VS Code desde la version 1.116, por lo que
+  // NO se recomienda la extension GitHub.copilot (en proceso de deprecacion)
+  // ni GitHub.copilot-chat.
+  "recommendations": [
+    "ms-dotnettools.csdevkit",
+    "ms-dotnettools.csharp",
+    "GitHub.vscode-pull-request-github"
+  ]
+}

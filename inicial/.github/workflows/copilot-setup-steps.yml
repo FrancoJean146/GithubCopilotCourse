@@ -1,0 +1,31 @@
+# Prepara el entorno que usa el agente de codificacion de GitHub Copilot.
+# El job DEBE llamarse copilot-setup-steps para que Copilot lo reconozca.
+name: "Copilot Setup Steps"
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+  pull_request:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+
+jobs:
+  copilot-setup-steps:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Descargar el repositorio
+        uses: actions/checkout@v4
+
+      - name: Instalar el SDK de .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restaurar dependencias
+        run: dotnet restore CopilotLabCatalogo.sln
+
+      - name: Compilar la solucion
+        run: dotnet build CopilotLabCatalogo.sln --no-restore --configuration Release
