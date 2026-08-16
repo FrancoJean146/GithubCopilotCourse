@@ -9,11 +9,6 @@ Código de laboratorio del curso **GitHub Copilot para Desarrollo de Software**.
 | Elemento | Audiencia | Descripción |
 |---|---|---|
 | `inicial/` | **Participantes** | Lo que reciben al inicio del curso. Contiene tres funcionalidades incompletas y tres defectos controlados. Es el punto de partida de los diez laboratorios |
-| `resuelto/` | **Instructor** | Solución de referencia completa. No se entrega a los participantes antes del cierre del Día 5 |
-| `DEFECTOS_INTENCIONALES.md` | **Instructor** | Documento confidencial: ubicación exacta de cada defecto, cómo se manifiesta, cómo se corrige y su valor pedagógico |
-| `verificar.sh` / `verificar.ps1` | Instructor y TI | Verifican que ambas copias restauran, compilan y ejecutan sus pruebas |
-
-> **No entregue `resuelto/` ni `DEFECTOS_INTENCIONALES.md` a los participantes antes de tiempo.** El descubrimiento de los defectos es el núcleo de los laboratorios 6 y 8.
 
 ---
 
@@ -83,7 +78,7 @@ dotnet test
 dotnet run --project src/Catalogo.Api
 ```
 
-Resultado esperado de `dotnet test` en `inicial/`: **15 pruebas superadas y 2 omitidas**. Corresponden a 8 métodos de prueba activos (tres de ellos son `[Theory]` con varios casos) y 2 métodos marcados con `Skip`.
+Resultado esperado de `dotnet test` en `inicial/`: **15 pruebas superadas y 2 omitidas**. Corresponden a 8 métodos de prueba activos.
 
 Swagger queda disponible en la URL que imprime `dotnet run` (por defecto `/swagger`).
 
@@ -98,30 +93,6 @@ Para verificar ambas copias de una vez:
 
 ---
 
-## Las pruebas omitidas
-
-Las dos pruebas marcadas con `Skip` se habilitan quitando el argumento `Skip` del atributo `[Fact]`:
-
-| Prueba | Se habilita en | Qué expone |
-|---|---|---|
-| En `ProductoServiceTests.cs` | **Laboratorio 5 (Jornada 3)** | La ausencia de `ActualizarPrecioAsync` (TODO-01 / HU-01) |
-| En `DescuentoCalculatorTests.cs` | **Laboratorio 6 (Jornada 3)** | El defecto BUG-01 del cálculo de descuentos |
-
----
-
-## Aviso sobre la credencial del ejemplo
-
-`src/Catalogo.Api/Infrastructure/LegacyPricingClient.cs` y `appsettings.json` contienen la cadena:
-
-```
-sk-FAKE-DEMO-NOT-A-REAL-SECRET-0000
-```
-
-**Es un valor falso, deliberadamente evidente, y forma parte del ejercicio del Laboratorio 8.** No es una credencial real, no da acceso a ningún servicio y no debe tratarse como un incidente de seguridad. Su presencia es intencional: el participante debe encontrarla, entender por qué es un defecto y corregirla moviéndola a configuración externa.
-
-Si prefiere no incluir un secreto simulado en su organización, el Laboratorio 8 documenta una variante equivalente sin él.
-
----
 
 ## Configuración de GitHub Copilot incluida
 
@@ -153,13 +124,3 @@ El dominio (catálogo de productos) es deliberadamente neutral para evitar depen
 5. Vuelva a ejecutar `verificar.sh` o `verificar.ps1` antes de entregar el repositorio a los participantes.
 
 ---
-
-## Preparación antes del curso
-
-1. Publique `inicial/` como repositorio en la organización de GitHub del cliente.
-2. Conceda a cada participante permiso de **escritura**, o documente el flujo alternativo de fork.
-3. Cree las ramas de referencia del instructor: `solucion/lab05`, `solucion/lab06`, `solucion/lab07`, `solucion/lab08`, y las de demostración `demo/demo05`, `demo/demo06`, `demo/demo08`.
-4. Si hay rulesets o protección de rama activos, añada Copilot como **bypass actor** para que el cloud agent pueda operar.
-5. Ejecute el script de verificación en una máquina limpia.
-
-El procedimiento completo está en `04_guia_facilitador/checklist_previo.md`.
