@@ -24,7 +24,6 @@
 | GitHub Copilot Business | $19 USD / granted seat / mes |
 | GitHub Copilot Enterprise | $39 USD / granted seat / mes |
 
-**Cambio vs. la lista de 5 planes del brief:** se **añadieron dos planes** — **Copilot Student** y **Copilot Max**. Ninguno fue renombrado ni eliminado. `[GA]`
 
 Avisos vigentes en la misma página (verbatim):
 - *"Starting April 22, 2026, new self-serve sign-ups for Copilot Business for organizations on GitHub Free and GitHub Team plans are temporarily paused."*
