@@ -1,0 +1,236 @@
+INFORME DE ANALISIS DE ESTRUCTURA
+Repositorio: GithubCopilotCourse
+Fecha del analisis: 2026-08-19
+
+1. ALCANCE
+
+Se revisaron las carpetas:
+- inicial/src
+- Entregable
+
+La carpeta Entregable estaba vacia antes de este analisis. Este archivo contiene el informe solicitado.
+
+2. ESTRUCTURA GENERAL
+
+inicial/
+  CopilotLabCatalogo.sln
+  README.md
+  src/
+    Catalogo.Api/
+      Catalogo.Api.csproj
+      Program.cs
+      appsettings.json
+      appsettings.Development.json
+      Controllers/
+        ProductosController.cs
+      Dtos/
+        ActualizarPrecioRequest.cs
+        BusquedaProductosQuery.cs
+        CrearProductoRequest.cs
+        ProductoResponse.cs
+      Infrastructure/
+        LegacyPricingClient.cs
+      Models/
+        Categoria.cs
+        Producto.cs
+      Repositories/
+        IProductoRepository.cs
+        InMemoryProductoRepository.cs
+      Services/
+        IDescuentoCalculator.cs
+        IProductoService.cs
+        DescuentoCalculator.cs
+        ProductoService.cs
+      bin/ y obj/    Artefactos generados de compilacion
+  tests/
+    Catalogo.Api.Tests/
+      Catalogo.Api.Tests.csproj
+      DescuentoCalculatorTests.cs
+      ProductoServiceTests.cs
+
+Entregable/
+  informe_analisis_src.txt
+
+Nota: las pruebas no estan dentro de src. Se encuentran en inicial/tests y la solucion las incluye como un proyecto independiente.
+
+3. PROYECTO PRINCIPAL: CATALOGO.API
+
+Tecnologia y configuracion:
+- ASP.NET Core Web API con controllers.
+- .NET 8 (TargetFramework net8.0).
+- Nullable habilitado.
+- ImplicitUsings habilitado.
+- Namespace y nombre de ensamblado: Catalogo.Api.
+- Swagger/OpenAPI mediante Swashbuckle.AspNetCore 6.5.0.
+- URL configurada: http://localhost:5080.
+
+Responsabilidad:
+La aplicacion expone una API REST para consultar, crear, actualizar y eliminar productos de un catalogo.
+
+4. CAPAS Y RESPONSABILIDADES
+
+4.1 Program.cs
+
+Configura la aplicacion y la inyeccion de dependencias:
+- Agrega controllers.
+- Conserva el sufijo Async en los nombres de acciones para CreatedAtAction.
+- Habilita exploracion de endpoints y Swagger.
+- Registra IProductoRepository con InMemoryProductoRepository como Singleton.
+- Registra IDescuentoCalculator con DescuentoCalculator como Singleton.
+- Registra LegacyPricingClient.
+- Registra IProductoService con ProductoService como Scoped.
+- Mapea los controllers.
+
+Observacion: existe un TODO para agregar middleware centralizado de errores y convertir excepciones de dominio en respuestas ProblemDetails. Actualmente no esta registrado.
+
+4.2 Controllers/ProductosController.cs
+
+Es la capa HTTP. Usa la ruta base api/productos y devuelve JSON.
+
+Endpoints implementados:
+- GET /api/productos
+  Busca productos con filtros y paginacion. Actualmente el servicio invoca una funcionalidad pendiente y puede lanzar NotImplementedException.
+- GET /api/productos/{id}
+  Devuelve un producto o 404 con ProblemDetails si no existe.
+- POST /api/productos
+  Crea un producto y devuelve 201 Created, incluyendo la referencia al endpoint de consulta por id.
+- DELETE /api/productos/{id}
+  Elimina un producto y devuelve 204, o 404 si no existe.
+
+Endpoint pendiente:
+- PATCH /api/productos/{id}/precio
+  El controller contiene un TODO. Debe recibir ActualizarPrecioRequest, calcular y persistir el precio final y devolver 200, 400 o 404 segun el caso.
+
+4.3 Dtos/
+
+Define los contratos de entrada y salida de la API mediante records:
+- CrearProductoRequest: nombre, categoria, precio base y existencias.
+- ActualizarPrecioRequest: precio base, cantidad y si el cliente es preferente.
+- BusquedaProductosQuery: categoria, precio minimo, precio maximo, texto, pagina y tamano de pagina.
+  Incluye valores predeterminados de pagina 1 y tamano 20, con maximo de 100.
+- ProductoResponse: id, nombre, categoria, precio base, existencias y estado activo.
+
+Los DTOs documentan sus propiedades, pero no se observan atributos explicitos de validacion como Required, Range o validadores personalizados.
+
+4.4 Models/
+
+- Producto.cs: entidad mutable del dominio con Id, Nombre, Categoria, PrecioBase, Existencias y Activo.
+- Categoria.cs: enumeracion con Electronica, Hogar, Oficina y Consumible.
+
+4.5 Repositories/
+
+- IProductoRepository.cs: contrato asincrono para obtener todos, obtener por id, agregar, actualizar y eliminar productos.
+- InMemoryProductoRepository.cs: implementacion en memoria basada en ConcurrentDictionary.
+
+Caracteristicas del repositorio:
+- Se registra como Singleton, por lo que el estado se comparte mientras vive el proceso.
+- Inicializa 12 productos de demostracion, con ids del 1 al 12.
+- Genera nuevos ids con Interlocked.
+- Ordena los resultados por id al obtener todos.
+- Comprueba cancelacion en sus operaciones.
+- No usa una base de datos persistente; los cambios se pierden al reiniciar la aplicacion.
+
+4.6 Services/
+
+- IProductoService.cs: contrato de las operaciones de negocio del catalogo.
+- ProductoService.cs: coordina repositorio, calculadora de descuentos y logging.
+  - ObtenerPorIdAsync esta implementado.
+  - CrearAsync esta implementado.
+  - EliminarAsync esta implementado.
+  - BuscarAsync esta pendiente y lanza NotImplementedException.
+  - ActualizarPrecioAsync esta pendiente y lanza NotImplementedException.
+  - Mapear transforma la entidad Producto en ProductoResponse.
+- IDescuentoCalculator.cs: contrato para calcular precios finales.
+- DescuentoCalculator.cs: aplica descuentos por volumen y por cliente preferente.
+
+Reglas observadas en el codigo de descuentos:
+- Cantidad mayor que 10: 5 por ciento.
+- Cantidad mayor que 50: 10 por ciento.
+- Cantidad mayor que 100: 15 por ciento.
+- Cliente preferente: 8 por ciento adicional.
+- Redondeo a dos decimales con MidpointRounding.AwayFromZero.
+- Precio base no positivo y cantidad menor que 1 producen ArgumentOutOfRangeException.
+
+Advertencia: el README describe umbrales inclusivos (>= 10, >= 50, >= 100) y un tope total del 20 por ciento, mientras que la implementacion observada usa comparaciones estrictas (>, por lo que 10, 50 y 100 no activan el tramo esperado) y no aplica el tope. Esto corresponde al defecto BUG-01 indicado por el proyecto.
+
+4.7 Infrastructure/LegacyPricingClient.cs
+
+Cliente simulado de un servicio legado de precios:
+- No hace llamadas de red reales.
+- Calcula un precio de referencia a partir del id del producto.
+- Registra en debug una solicitud simulada.
+- Contiene una URL y una clave de demostracion falsa.
+- La dependencia esta registrada en Program.cs, pero no se observa uso desde ProductoService ni desde el controller.
+
+4.8 Configuracion
+
+appsettings.json contiene:
+- Niveles de logging.
+- AllowedHosts = *.
+- URL http://localhost:5080.
+- Seccion LegacyPricing con ApiKey y BaseUrl de demostracion.
+
+El README aclara que la clave es falsa y forma parte de un ejercicio de seguridad. En un entorno real no se deben guardar secretos en el repositorio; deberian utilizarse variables de entorno, Secret Manager o un almacen seguro.
+
+5. FLUJO DE DEPENDENCIAS
+
+Cliente HTTP
+  -> ProductosController
+  -> IProductoService / ProductoService
+  -> IProductoRepository / InMemoryProductoRepository
+  -> estado en memoria
+
+ProductoService tambien depende de:
+- IDescuentoCalculator / DescuentoCalculator
+- ILogger<ProductoService>
+
+LegacyPricingClient queda como componente de infraestructura disponible para inyeccion, pero actualmente no participa en el flujo de productos.
+
+6. PRUEBAS
+
+Proyecto: inicial/tests/Catalogo.Api.Tests
+Target framework: net8.0
+Framework: xUnit 2.5.3
+Librerias: FluentAssertions, Moq, Microsoft.NET.Test.Sdk y coverlet.collector.
+
+DescuentoCalculatorTests.cs cubre:
+- Cantidades sin descuento por volumen.
+- Descuentos de volumen para varios rangos.
+- Descuento de cliente preferente.
+- Argumentos invalidos.
+- Una prueba omitida para evidenciar el tope del 20 por ciento.
+
+ProductoServiceTests.cs cubre:
+- Consulta de producto existente.
+- Consulta de producto inexistente.
+- Creacion y asignacion del siguiente id.
+- Eliminacion de producto existente.
+- Una prueba omitida para la actualizacion de precio.
+
+Segun el README, el estado inicial esperado es de 15 pruebas superadas y 2 omitidas.
+No se ejecuto la suite durante este analisis; ese resultado es el documentado por el README.
+
+7. HALLAZGOS PRINCIPALES
+
+- La API tiene una estructura por capas clara y una separacion razonable entre HTTP, negocio, persistencia y modelos.
+- La consulta GET general esta expuesta, pero su implementacion de servicio esta pendiente.
+- La actualizacion de precio esta declarada en las interfaces y DTOs, pero no existe el endpoint ni la logica de servicio.
+- La regla de descuentos contiene un defecto conocido respecto a los umbrales inclusivos y el tope del 20 por ciento.
+- No hay middleware global para traducir excepciones a ProblemDetails.
+- La persistencia es temporal y en memoria, adecuada para practica o demostracion, no para produccion.
+- La cobertura esta enfocada en calculadora y servicio; no se observan pruebas de integracion de controllers o endpoints HTTP.
+- El cliente legado esta simulado y actualmente no se utiliza.
+- Hay documentacion XML en varias clases publicas, pero las interfaces principales tienen TODO de documentacion pendiente.
+
+8. RECOMENDACIONES
+
+1. Implementar BuscarAsync con validacion de filtros, filtrado por categoria, rango de precio y texto, y paginacion.
+2. Implementar ActualizarPrecioAsync y el endpoint PATCH correspondiente.
+3. Corregir DescuentoCalculator para usar los umbrales inclusivos y limitar el descuento acumulado al 20 por ciento.
+4. Agregar middleware global de errores con respuestas ProblemDetails consistentes.
+5. Agregar validaciones de entrada para nombre, precios, existencias y parametros de busqueda.
+6. Incorporar pruebas de controller o integracion para verificar codigos HTTP y contratos JSON.
+7. Sustituir la persistencia en memoria por una base de datos si el proyecto pasa a un escenario real.
+8. Mantener cualquier secreto fuera del repositorio, aunque el valor actual sea de demostracion.
+
+FIN DEL INFORME
