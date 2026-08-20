@@ -25,8 +25,13 @@ public sealed class DescuentoCalculatorTests
     }
 
     [Theory]
+    [InlineData(100.00, 10, 95.00)]
     [InlineData(100.00, 11, 95.00)]
+    [InlineData(100.00, 49, 95.00)]
+    [InlineData(100.00, 50, 90.00)]
     [InlineData(100.00, 51, 90.00)]
+    [InlineData(100.00, 99, 90.00)]
+    [InlineData(100.00, 100, 85.00)]
     [InlineData(100.00, 101, 85.00)]
     [InlineData(99.99, 11, 94.99)]
     public void CalcularPrecioFinal_CantidadConVolumen_AplicaElDescuentoPorVolumen(double precioBase, int cantidad, double esperado)
@@ -54,6 +59,32 @@ public sealed class DescuentoCalculatorTests
         resultado.Should().Be(92.00m);
     }
 
+    [Fact]
+    public void CalcularPrecioFinal_VolumenYClientePreferente_SumaLosDescuentos()
+    {
+        // Arrange
+        var calculadora = new DescuentoCalculator();
+
+        // Act
+        var resultado = calculadora.CalcularPrecioFinal(100m, 10, true);
+
+        // Assert
+        resultado.Should().Be(87.00m);
+    }
+
+    [Fact]
+    public void CalcularPrecioFinal_ResultadoConTresDecimales_RedondeaAlejandoseDeCero()
+    {
+        // Arrange
+        var calculadora = new DescuentoCalculator();
+
+        // Act
+        var resultado = calculadora.CalcularPrecioFinal(10.125m, 1, false);
+
+        // Assert
+        resultado.Should().Be(10.13m);
+    }
+
     [Theory]
     [InlineData(0.00, 1)]
     [InlineData(-1.00, 1)]
@@ -71,7 +102,7 @@ public sealed class DescuentoCalculatorTests
         accion.Should().ThrowExactly<ArgumentOutOfRangeException>();
     }
 
-    [Fact(Skip = "Habilitar en el Laboratorio 6 (Jornada 3) para exponer BUG-01")]
+    [Fact]
     public void CalcularPrecioFinal_CantidadCienYClientePreferente_TopaElDescuentoEnVeintePorCiento()
     {
         // Arrange

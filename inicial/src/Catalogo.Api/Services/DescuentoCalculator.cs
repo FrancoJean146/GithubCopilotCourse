@@ -29,31 +29,28 @@ public sealed class DescuentoCalculator : IDescuentoCalculator
             throw new ArgumentOutOfRangeException(nameof(cantidad), cantidad, "La cantidad debe ser mayor o igual que 1.");
         }
 
-        var descuento = ObtenerDescuentoPorVolumen(cantidad);
+        var descuentoVolumen = ObtenerDescuentoPorVolumen(cantidad);
+        var descuentoCliente = esClientePreferente ? DescuentoClientePreferente : 0m;
+        var descuentoTotal = Math.Min(descuentoVolumen + descuentoCliente, 0.20m);
 
-        if (esClientePreferente)
-        {
-            descuento += DescuentoClientePreferente;
-        }
-
-        var precioFinal = precioBase * (1m - descuento);
+        var precioFinal = precioBase * (1m - descuentoTotal);
 
         return Math.Round(precioFinal, 2, MidpointRounding.AwayFromZero);
     }
 
     private static decimal ObtenerDescuentoPorVolumen(int cantidad)
     {
-        if (cantidad > 100)
+        if (cantidad >= 100)
         {
             return DescuentoVolumenAlto;
         }
 
-        if (cantidad > 50)
+        if (cantidad >= 50)
         {
             return DescuentoVolumenMedio;
         }
 
-        if (cantidad > 10)
+        if (cantidad >= 10)
         {
             return DescuentoVolumenBajo;
         }

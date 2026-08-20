@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Catalogo.Api.Dtos;
 using Catalogo.Api.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -87,9 +88,51 @@ public sealed class ProductosController : ControllerBase
         return CreatedAtAction(nameof(ObtenerPorIdAsync), new { id = creado.Id }, creado);
     }
 
-    // TODO-01: falta el endpoint PATCH api/productos/{id}/precio que recibe ActualizarPrecioRequest,
-    // calcula el precio final con IDescuentoCalculator, lo persiste y devuelve ProductoResponse
-    // (200 correcto, 400 datos invalidos, 404 producto inexistente).
+    /// <summary>
+    /// Actualiza el precio base de un producto aplicando el descuento vigente.
+    /// </summary>
+    /// <param name="id">Identificador del producto.</param>
+    /// <param name="solicitud">Datos necesarios para recalcular el precio del producto.</param>
+    /// <param name="cancellationToken">Token para cancelar la operacion.</param>
+    /// <returns>El producto con el precio actualizado.</returns>
+    [HttpPatch("{id:int}/precio")]
+    [ProducesResponseType(typeof(ProductoResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ProductoResponse>> ActualizarPrecioAsync(
+        int id,
+        [FromBody] ActualizarPrecioRequest solicitud,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var actualizado = await _servicio.ActualizarPrecioAsync(id, solicitud, cancellationToken).ConfigureAwait(false);
+
+            if (actualizado is null)
+            {
+                return NotFound(new ProblemDetails
+                {
+                    Title = "Producto no encontrado",
+                    Detail = $"No existe un producto con el identificador {id}.",
+                    Status = StatusCodes.Status404NotFound
+                });
+            }
+
+            return Ok(actualizado);
+        }
+        catch (ValidationException ex)
+        {
+            var campoInvalido = ex.ValidationResult?.MemberNames.FirstOrDefault() ?? "solicitud";
+
+            return BadRequest(new ProblemDetails
+            {
+                Title = "Datos invalidos",
+                Detail = ex.Message,
+                Status = StatusCodes.Status400BadRequest,
+                Extensions = { ["invalidField"] = campoInvalido }
+            });
+        }
+    }
 
     /// <summary>
     /// Elimina un producto del catalogo.

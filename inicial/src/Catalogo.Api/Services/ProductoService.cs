@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Catalogo.Api.Dtos;
 using Catalogo.Api.Models;
 using Catalogo.Api.Repositories;
@@ -68,10 +69,31 @@ public sealed class ProductoService : IProductoService
     }
 
     /// <inheritdoc />
-    public Task<ProductoResponse?> ActualizarPrecioAsync(int id, ActualizarPrecioRequest solicitud, CancellationToken cancellationToken = default)
+    public async Task<ProductoResponse?> ActualizarPrecioAsync(int id, ActualizarPrecioRequest solicitud, CancellationToken cancellationToken = default)
     {
-        // TODO-01: calcular el precio final con IDescuentoCalculator, persistirlo y devolver el ProductoResponse.
-        throw new NotImplementedException("TODO-01: la actualizacion de precio todavia no esta implementada.");
+        ArgumentNullException.ThrowIfNull(solicitud);
+
+        var producto = await _repositorio.ObtenerPorIdAsync(id, cancellationToken).ConfigureAwait(false);
+
+        if (producto is null)
+        {
+            _logger.LogWarning("No se encontro el producto {ProductoId} al actualizar su precio.", id);
+            return null;
+        }
+
+        Validator.ValidateObject(solicitud, new ValidationContext(solicitud), validateAllProperties: true);
+
+        var precioFinal = _calculadora.CalcularPrecioFinal(solicitud.PrecioBase, solicitud.Cantidad, solicitud.EsClientePreferente);
+        producto.PrecioBase = precioFinal;
+
+        var actualizado = await _repositorio.ActualizarAsync(producto, cancellationToken).ConfigureAwait(false);
+
+        if (actualizado is not null)
+        {
+            _logger.LogInformation("Precio del producto {ProductoId} actualizado a {Precio}.", id, actualizado.PrecioBase);
+        }
+
+        return actualizado is null ? null : Mapear(actualizado);
     }
 
     /// <inheritdoc />

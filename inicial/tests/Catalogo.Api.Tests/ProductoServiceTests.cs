@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Catalogo.Api.Dtos;
 using Catalogo.Api.Models;
 using Catalogo.Api.Repositories;
@@ -80,7 +81,7 @@ public sealed class ProductoServiceTests
         eliminado.Should().BeTrue();
     }
 
-    [Fact(Skip = "Habilitar en el Laboratorio 5 (Jornada 3) al implementar HU-01")]
+    [Fact]
     public async Task ActualizarPrecioAsync_ProductoExistente_DevuelveElPrecioConDescuentoAplicado()
     {
         // Arrange
@@ -96,6 +97,73 @@ public sealed class ProductoServiceTests
         var actualizado = await servicio.ActualizarPrecioAsync(1, solicitud);
 
         // Assert
-        actualizado!.PrecioBase.Should().Be(95.00m);
+        actualizado.Should().BeEquivalentTo(new { PrecioBase = 95.00m });
+    }
+
+    [Fact]
+    public async Task ActualizarPrecioAsync_ProductoInexistente_DevuelveNull()
+    {
+        // Arrange
+        var servicio = CrearServicio();
+        var solicitud = new ActualizarPrecioRequest
+        {
+            PrecioBase = 100m,
+            Cantidad = 5,
+            EsClientePreferente = false
+        };
+
+        // Act
+        var actualizado = await servicio.ActualizarPrecioAsync(9999, solicitud);
+
+        // Assert
+        actualizado.Should().BeNull();
+    }
+
+    [Theory]
+    [InlineData(0.00, 1, "PrecioBase")]
+    [InlineData(-1.00, 1, "PrecioBase")]
+    [InlineData(100.00, 0, "Cantidad")]
+    [InlineData(100.00, -1, "Cantidad")]
+    public async Task ActualizarPrecioAsync_SolicitudInvalida_IdentificaElCampoInvalido(
+        double precioBase,
+        int cantidad,
+        string campoEsperado)
+    {
+        // Arrange
+        var servicio = CrearServicio();
+        var solicitud = new ActualizarPrecioRequest
+        {
+            PrecioBase = (decimal)precioBase,
+            Cantidad = cantidad,
+            EsClientePreferente = false
+        };
+
+        // Act
+        Func<Task> accion = async () => await servicio.ActualizarPrecioAsync(1, solicitud);
+
+        // Assert
+        await accion.Should().ThrowExactlyAsync<ValidationException>()
+            .Where(excepcion => excepcion.ValidationResult != null
+                && excepcion.ValidationResult.MemberNames.Contains(campoEsperado));
+    }
+
+    [Fact]
+    public async Task ActualizarPrecioAsync_ProductoExistente_PersisteElPrecioParaConsultaPosterior()
+    {
+        // Arrange
+        var servicio = CrearServicio();
+        var solicitud = new ActualizarPrecioRequest
+        {
+            PrecioBase = 200m,
+            Cantidad = 50,
+            EsClientePreferente = false
+        };
+
+        // Act
+        await servicio.ActualizarPrecioAsync(1, solicitud);
+        var consultado = await servicio.ObtenerPorIdAsync(1);
+
+        // Assert
+        consultado.Should().BeEquivalentTo(new { PrecioBase = 180.00m });
     }
 }
