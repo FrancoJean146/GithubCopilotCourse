@@ -9,6 +9,9 @@ public sealed class DescuentoCalculator : IDescuentoCalculator
     private const decimal DescuentoVolumenMedio = 0.10m;
     private const decimal DescuentoVolumenAlto = 0.15m;
     private const decimal DescuentoClientePreferente = 0.08m;
+    private const int ValorTope = 100;
+    private const int ValorMedio = 50;
+    private const int ValorBajo= 10;
 
     /// <summary>
     /// Calcula el precio unitario final aplicando el descuento por volumen y el de cliente preferente.
@@ -40,17 +43,17 @@ public sealed class DescuentoCalculator : IDescuentoCalculator
 
     private static decimal ObtenerDescuentoPorVolumen(int cantidad)
     {
-        if (cantidad >= 100)
+        if (cantidad >= ValorTope)
         {
             return DescuentoVolumenAlto;
         }
 
-        if (cantidad >= 50)
+        if (cantidad >= ValorMedio)
         {
             return DescuentoVolumenMedio;
         }
 
-        if (cantidad >= 10)
+        if (cantidad >= ValorBajo)
         {
             return DescuentoVolumenBajo;
         }

@@ -10,6 +10,25 @@ namespace Catalogo.Api.Tests;
 public sealed class DescuentoCalculatorTests
 {
     [Theory]
+    [InlineData(9, 100.00)]
+    [InlineData(10, 95.00)]
+    [InlineData(49, 95.00)]
+    [InlineData(50, 90.00)]
+    [InlineData(99, 90.00)]
+    [InlineData(100, 85.00)]
+    public void CalcularPrecioFinal_UmbralesDeVolumen_AplicaElDescuentoCorrespondiente(int cantidad, double esperado)
+    {
+        // Arrange
+        var calculadora = new DescuentoCalculator();
+
+        // Act
+        var resultado = calculadora.CalcularPrecioFinal(100m, cantidad, false);
+
+        // Assert
+        resultado.Should().Be((decimal)esperado);
+    }
+
+    [Theory]
     [InlineData(100.00, 1)]
     [InlineData(100.00, 9)]
     public void CalcularPrecioFinal_CantidadSinVolumen_DevuelveElPrecioBase(double precioBase, int cantidad)
@@ -83,6 +102,19 @@ public sealed class DescuentoCalculatorTests
 
         // Assert
         resultado.Should().Be(10.13m);
+    }
+
+    [Fact]
+    public void CalcularPrecioFinal_DescuentoGeneraPuntoMedio_RedondeaAlejandoseDeCero()
+    {
+        // Arrange
+        var calculadora = new DescuentoCalculator();
+
+        // Act
+        var resultado = calculadora.CalcularPrecioFinal(0.30m, 10, false);
+
+        // Assert
+        resultado.Should().Be(0.29m);
     }
 
     [Theory]
